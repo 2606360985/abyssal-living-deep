@@ -1,0 +1,16 @@
+*{box-sizing:border-box;}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#010304;color:#a6b8b6;font-family:Consolas,monospace;}
+#gl{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none;}
+#miner-hud {position:fixed;inset:0;z-index:5;pointer-events:none;font:11px/1.6 'Cascadia Mono',Consolas,monospace;letter-spacing:1.6px;color:#849894;text-shadow:0 1px 4px #000;}
+#miner-hud[hidden],#miner-hud [hidden] {display:none!important;}
+#miner-hud header {position:absolute;top:29px;left:35px;right:35px;display:flex;justify-content:space-between;border-top:1px solid #8aaca331;padding-top:10px;}
+.mission {color:#a5b7ae;font-size:11px;}.slash{color:#cfb975;padding:0 9px;}.live-dot{display:inline-block;width:5px;height:5px;background:#c5b36c;margin-right:9px;box-shadow:0 0 6px #d2b75e50;}.link{font-size:10px;}.link b{color:#91aa91;margin:0 8px;font-size:8px;}
+.heading{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:290px;display:flex;justify-content:space-between;font-size:9px;color:#60736f;padding-bottom:12px;border-bottom:1px solid #829f9633;}
+.heading strong{font-size:12px;color:#b4c6bd;font-weight:400;}.heading i{position:absolute;left:50%;bottom:-5px;border-left:3px solid transparent;border-right:3px solid transparent;border-bottom:4px solid #c4b77a;}
+.depth{position:absolute;left:35px;top:39%;border-left:1px solid #9fb5a747;padding-left:15px;display:flex;flex-direction:column;}
+.depth small{font-size:9px;color:#7e9690;}.depth strong{font-size:25px;font-weight:400;letter-spacing:1px;color:#c2cfc0;}.depth span{font-size:17px;color:#97aaa0;}.depth-rule{height:1px;background:#91aaa433;margin:15px 0;width:33px;}
+.reticle{position:absolute;left:50%;top:50%;width:18px;height:18px;opacity:.22;}.reticle i{position:absolute;width:5px;height:5px;border-color:#b1c6bb;border-style:solid;}.reticle i:nth-child(1){top:0;left:0;border-width:1px 0 0 1px;}.reticle i:nth-child(2){top:0;right:0;border-width:1px 1px 0 0;}.reticle i:nth-child(3){bottom:0;left:0;border-width:0 0 1px 1px;}.reticle i:nth-child(4){bottom:0;right:0;border-width:0 1px 1px 0;}
+#miner-hud footer{position:absolute;left:35px;right:35px;bottom:26px;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #8aaca331;padding-bottom:12px;}
+.vehicle-status{display:flex;flex-direction:column;gap:3px;}.vehicle-status>span{font-size:9px;color:#c0b77d;}.vehicle-status strong{font-size:11px;font-weight:400;color:#9baea4;}.vehicle-status small{font-size:9px;color:#627b73;}.vehicle-status b{font-weight:400;color:#9eaca0;}.vehicle-status i{display:inline-block;width:18px;}
+.controls{font-size:9px;line-height:2.1;color:#84948a;text-align:center;letter-spacing:1px;}.controls span{font-size:8px;color:#4b625b;}.mission-code{text-align:right;font-size:8px;color:#526c64;}.mission-code>span{font-size:13px;color:#a5aea1;letter-spacing:3px;}.mission-code .slash{padding:0 1px;}
+#miner-perf{position:absolute;right:35px;top:100px;max-width:80vw;white-space:pre-wrap;letter-spacing:.3px;font-size:10px;padding:12px;background:#020805db;border:1px solid #758b6b40;}
+@media(max-width:800px){.heading{top:85px;width:230px;}.controls{display:none;}.link{display:none;}.depth{left:20px;}#miner-hud header,#miner-hud footer{left:20px;right:20px;}}

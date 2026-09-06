@@ -1,4 +1,42 @@
-# ABYSSAL — The Living Deep
+# ABYSS//MINER
+
+M1 of a cinematic industrial deep-sea ROV prototype. The default entry now opens a third-person work-class ROV at approximately 3,800 m, above a procedural seabed. The original Living Deep ocean remains available at `?experience=legacy`.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173/`. This milestone uses Three.js r169, WebGL2, JavaScript and Vite. Desktop keyboard controls and hardware acceleration are required for the intended experience. WebGPU, sonar, sampling, dynamic sediment and the narrative ending are future milestones.
+
+| Control | Action |
+| --- | --- |
+| W / S | Forward / reverse with inertia |
+| A / D | Slow yaw |
+| Q / E | Descend / ascend |
+| F1 | Hide/show all HUD |
+| F2 | Performance information |
+| F3 | Free camera; drag to look, WASD/QE to move, Shift to accelerate |
+| F4 | Cinematic camera / follow camera |
+| 2 | Reset deep-sea arrival and the hero shot |
+
+For reproducible captures: `?pose=hero&hud=0&still=1`, `?pose=close&hud=0`, `?pose=low&hud=0`, or `?camera=cinematic&hud=0`. In `still=1`, simulation and camera movement are frozen for comparisons; use an ordinary URL for interactive recording. F1–F4 may be reserved by some browser/OS combinations; use a focused page and the corresponding URL for capture if necessary.
+
+```sh
+npm run build
+npm test
+npm run qa:miner
+```
+
+`qa:miner` uses Chromium with D3D11 on Windows, records the actual GPU, runs interaction checks and captures a 60-second 1920×1080 frame-time sample. Captures and JSON reports are written to the ignored `tools/shots/` directory. The legacy simulation suite remains under `npm test`; it does not establish M1 visual quality. See [M1 implementation and visual QA](docs/MINER-M1.md).
+
+New scene code lives in `src/miner/`. Noise functions are reused from `src/underwater/WorldNoise.js`. Legacy weather, surface simulation, ecology and UI are loaded only when the legacy experience is selected. Original authorship and the MIT license are retained.
+
+---
+
+# Original prototype: ABYSSAL — The Living Deep
+
+The documentation below describes the preserved legacy experience. Add `experience=legacy` to its query-string examples.
 
 A procedural expansion of [ABYSSAL by Token-Gremlin](https://github.com/Token-Gremlin/natural-disasters). Begin at sea level, floating with the waves. Dive into a sunlit reef, a kelp forest, the continental slope and a 1,400-metre trench, all grown together from one seed. Swim through the waterline into the sky, or follow the canyon into the dark.
 

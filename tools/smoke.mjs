@@ -16,7 +16,7 @@ const getArg = (n, d) => {
   const i = args.indexOf(`--${n}`);
   return i >= 0 ? args[i + 1] : d;
 };
-const url = getArg('url', 'http://localhost:5173/');
+const url = getArg('url', 'http://localhost:5173/?experience=legacy');
 const seconds = parseFloat(getArg('seconds', '16'));
 const gpu = has('gpu');
 const tag = getArg('tag', '');
