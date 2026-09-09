@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { milestoneChecks } from './miner-milestones.mjs';
 
 const args = process.argv.slice(2);
 const arg = (key, fallback) => args.includes(key) ? args[args.indexOf(key) + 1] : fallback;
@@ -10,7 +11,7 @@ const seconds = Number(arg('--seconds', '0'));
 const legacy = args.includes('--legacy');
 const base = arg('--url', 'http://localhost:5173/');
 const out = path.resolve('tools/shots'); await fs.mkdir(out, { recursive: true });
-const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'], defaultViewport: { width: 1920, height: 1080, deviceScaleFactor: 1 } });
+const browser = await puppeteer.launch({ headless: true, executablePath:args.includes('--edge')?'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe':undefined, args: ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'], defaultViewport: { width: 1920, height: 1080, deviceScaleFactor: 1 } });
 const page = await browser.newPage(); const logs = [], checks = [];
 page.on('console', msg => { if (['error', 'warn'].includes(msg.type())) logs.push({ type: msg.type(), text: msg.text() }); });
 page.on('pageerror', error => logs.push({ type: 'error', text: error.stack }));
@@ -25,6 +26,8 @@ try {
     await shot('legacy');
     console.log(JSON.stringify(await page.evaluate(() => ({ caps: window.__app.caps, width: window.__app.renderWidth, height: window.__app.renderHeight })), null, 2));
   } else {
+    await page.keyboard.press('Digit2');
+    if(args.includes('--milestone'))await milestoneChecks(page,Number(arg('--milestone','2')),shot,checks);
     await shot('hud');
     await page.keyboard.press('F1'); await wait(200); await shot('hero');
     for (const pose of ['close', 'low']) {
@@ -58,16 +61,20 @@ try {
     }
     await page.evaluate(() => { window.__miner.setPose('hero'); window.__miner.hud.root.hidden = true; });
     if (seconds > 0) {
+      if(args.includes('--stage'))await page.keyboard.press(`Digit${arg('--stage','2')}`);
       console.log(`Sampling native 1920x1080 for ${seconds}s after warmup...`);
       await wait(3000);
       await page.evaluate(() => {
         window.__bench = { frames: [], active: true, last: null };
         const tick = t => { const b = window.__bench; if (!b.active) return; if (b.last !== null) b.frames.push(t - b.last); b.last = t; requestAnimationFrame(tick); }; requestAnimationFrame(tick);
       });
+      if(Number(arg('--milestone','0'))>=3)await page.evaluate(()=>{window.__pingBench=setInterval(()=>window.__miner.ping(),4200);window.__miner.ping();});
+      if(arg('--stage','2')==='5')await page.evaluate(()=>{clearInterval(window.__pingBench);const sample=()=>{const a=window.__miner;a.director.goto(5);a.startSampling(a.state.selected);};window.__pingBench=setInterval(sample,8000);sample();});
       // A short, continuous driving segment is included in the measured run.
       await page.keyboard.down('KeyW'); await wait(Math.min(5000, seconds * 1000)); await page.keyboard.up('KeyW');
       if (seconds > 5) await wait((seconds - 5) * 1000);
       await page.evaluate(() => window.__bench.active = false);
+      await page.evaluate(()=>clearInterval(window.__pingBench));
     }
     if (args.includes('--travel')) {
       await page.keyboard.down('KeyW'); await wait(3500); await page.keyboard.up('KeyW'); await shot('travel');
@@ -79,8 +86,8 @@ try {
     }
     const result = await page.evaluate(() => {
       const a = window.__miner, frames = window.__bench?.frames || [];
-      frames.sort((a,b)=>a-b);
-      return { caps: a.caps, width: a.width, height: a.height, dpr: a.dpr, stats: a.stats, frames: frames.length,
+      let run=0,longest=0;for(const ms of frames){run=ms>33?run+1:0;longest=Math.max(longest,run);}frames.sort((a,b)=>a-b);
+      return { caps: a.caps, width: a.width, height: a.height, dpr: a.dpr, stats: a.stats, frames: frames.length, consecutiveOver33:longest,
         median: frames[Math.floor(frames.length * .5)], p95: frames[Math.floor(frames.length * .95)],
         min: frames[0], max: frames.at(-1), resources: performance.getEntriesByType('resource').map(r=>r.name).filter(n=>/OceanFFT|weather\/|MarineLife/.test(n)) };
     });

@@ -16,7 +16,7 @@ function paintTexture() {
   const map = new THREE.CanvasTexture(canvas); map.colorSpace = THREE.SRGBColorSpace; return map;
 }
 
-export function createROV(scene) {
+export function createROV(scene, quality = { shadowSize: CONFIG.shadowSize }) {
   const root = new THREE.Group(); root.name = 'ROV / A-07'; scene.add(root);
   const yellow = new THREE.MeshStandardMaterial({ map: paintTexture(), roughness: 0.64, metalness: 0.08 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x303b3c, roughness: 0.48, metalness: 0.45 });
@@ -80,7 +80,7 @@ export function createROV(scene) {
   }
   box(.8,.19,.32,V(0,-.33,-.91),yellow);
   for(let j=0;j<6;j++)box(.035,.19,.012,V(-.33+j*.13,-.33,-1.078),dark,.004);
-  const rotors = [];
+  const rotors = [], blurDiscs = [];
   function thruster(position, axis) {
     const mount = new THREE.Group(); mount.position.copy(position); mount.quaternion.setFromUnitVectors(V(0, 0, 1), axis); root.add(mount);
     mesh(new THREE.TorusGeometry(0.225, 0.065, 10, 24), dark, V(0, 0, 0), mount);
@@ -89,6 +89,7 @@ export function createROV(scene) {
     for (const z of [-0.235, 0.085]) mesh(new THREE.TorusGeometry(0.236, 0.023, 6, 24), steel, V(0, 0, z), mount);
     const motor=mesh(new THREE.CylinderGeometry(.078,.078,.2,12),dark,V(0,0,-.12),mount);motor.rotation.x=Math.PI/2;
     const rotor = new THREE.Group(); mount.add(rotor); rotors.push(rotor);
+    const blur=mesh(new THREE.CircleGeometry(.2,24),new THREE.MeshBasicMaterial({color:0x879994,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}),V(0,0,.015),mount);blur.castShadow=false;blurDiscs.push(blur);
     for (let j = 0; j < 4; j++) {
       const blade = box(0.08, 0.18, 0.025, V(Math.sin(j * Math.PI / 2) * 0.095, Math.cos(j * Math.PI / 2) * 0.095, 0), steel, 0.01, rotor);
       blade.rotation.z = -j * Math.PI / 2; blade.rotation.y = 0.3;
@@ -100,6 +101,7 @@ export function createROV(scene) {
   for (const side of [-1, 1]) for (const z of [-0.78, 0.65]) thruster(V(side * 1.04, 0.02, z), V(side * 0.42, 0, z > 0 ? 0.91 : -0.91));
   for (const side of [-1, 1]) thruster(V(side * 0.39, 0.47, -0.7), V(0, 1, 0));
   // Folded hydraulic arm with a piston, joint and two fingers.
+  const armStart=root.children.length;
   rod(V(-0.55, -0.34, 0.65), V(-0.72, -0.5, 1.21), 0.085, yellow);
   rod(V(-0.72, -0.5, 1.21), V(-0.37, -0.38, 1.44), 0.06, steel);
   rod(V(-0.52, -0.25, 0.73), V(-0.67, -0.39, 1.13), 0.035, steel);
@@ -109,6 +111,7 @@ export function createROV(scene) {
     rod(V(-0.37 + side * 0.12, -0.42, 1.61), V(-0.37 + side * 0.035, -0.42, 1.7), 0.022);
   }
   tube([V(-0.5, -0.2, 0.5), V(-0.82, -0.35, 0.98), V(-0.71, -0.38, 1.25), V(-0.37, -0.32, 1.43)], 0.018);
+  const foldedArm=new THREE.Group();for(const child of root.children.slice(armStart))foldedArm.add(child);root.add(foldedArm);
   box(0.37, 0.24, 0.24, V(0.16, 0.15, 1.08), dark);
   const cameraLens = mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.11, 24), lens, V(0.16, 0.15, 1.25)); cameraLens.rotation.x = Math.PI / 2;
   const lights = [];
@@ -118,7 +121,7 @@ export function createROV(scene) {
     const glass = mesh(new THREE.CircleGeometry(0.117, 24), white, position.clone().add(V(0, 0, 0.155))); glass.castShadow = false;
     const lamp = new THREE.SpotLight(0xd3e9e7, CONFIG.lightPower, CONFIG.lightRange, CONFIG.lightAngle, 0.55, 2);
     lamp.position.copy(position).add(V(0, 0, 0.2)); lamp.target.position.set(side * 4, -5.3, 24);
-    lamp.castShadow = true; lamp.shadow.mapSize.setScalar(CONFIG.shadowSize);
+    lamp.castShadow = true; lamp.shadow.mapSize.setScalar(quality.shadowSize);
     lamp.shadow.camera.near = 0.12; lamp.shadow.camera.far = CONFIG.lightRange;
     lamp.shadow.bias = -0.00015; lamp.shadow.normalBias = 0.035;
     root.add(lamp, lamp.target); lights.push(lamp);
@@ -152,5 +155,6 @@ export function createROV(scene) {
   for (const side of [-1, 1]) {
     const plate = mesh(new THREE.PlaneGeometry(1.25, 0.31), plateMaterial, V(side * 0.889, 0.7, 0)); plate.rotation.y = side * Math.PI / 2;
   }
-  return { root, lights, rotors, beacon };
+  const allLights=[];root.traverse(o=>{if(o.isLight){o.userData.baseIntensity=o.intensity;allLights.push(o);}});
+  return { root, lights, rotors, blurDiscs, beacon, allLights,foldedArm,materials:{yellow,dark,steel,rubber} };
 }

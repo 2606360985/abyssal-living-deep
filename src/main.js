@@ -7,10 +7,10 @@ if (new URLSearchParams(location.search).get('experience') === 'legacy') {
     for (const script of legacy.querySelectorAll('script')) script.remove();
     document.body.replaceChildren(...legacy.body.childNodes);
     return import('./legacy.js');
-  }).catch(error => { console.error(error); document.body.textContent = `Legacy ocean could not start: ${error.message}`; });
+  }).catch(error => { console.error(error); document.body.textContent = `遗留海洋无法启动：${error.message}`; });
 } else {
   import('./miner/main.js').catch(error => {
     console.error(error);
-    document.body.textContent = `ABYSS//MINER could not start: ${error.message}`;
+    document.body.textContent = `ABYSS//MINER 无法启动：${error.message}`;
   });
 }

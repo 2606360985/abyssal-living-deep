@@ -7,18 +7,22 @@ export function installShowcase(app) {
     if (name === 'low') { rig.offset.set(4.8, -1.5, -5); rig.lookOffset.set(0, -0.4, 2.5); }
     rig.update(0, 0, app.keys, true);
   };
-  const codes = new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','F1','F2','F3','F4','Digit2']);
+  const codes = new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','KeyZ','KeyX','KeyM','Space','ShiftLeft','F1','F2','F3','F4',...Array.from({length:7},(_,i)=>`Digit${i+1}`)]);
+  window.addEventListener('pointerdown',()=>app.audio.unlock());
   window.addEventListener('keydown', e => {
     if (!codes.has(e.code)) return;
     e.preventDefault(); app.keys.add(e.code);
     if (e.repeat) return;
+    app.audio.unlock();
+    if(e.code==='KeyM')app.audio.setMuted(!app.audio.muted);
     if (e.code === 'F1') app.hud.toggle();
     if (e.code === 'F2') app.hud.togglePerf();
     if (e.code === 'F3') rig.setMode(rig.mode === 'free' ? 'follow' : 'free');
     if (e.code === 'F4') rig.setMode(rig.mode === 'cinematic' ? 'follow' : 'cinematic');
-    if (e.code === 'Digit2') app.setPose('hero');
+    if (e.code.startsWith('Digit')) app.director.goto(Number(e.code.slice(5)));
+    if(e.code==='Space')app.ping?.();
   });
   window.addEventListener('keyup', e => app.keys.delete(e.code));
   window.addEventListener('blur', () => app.keys.clear());
-  document.addEventListener('visibilitychange', () => { app.keys.clear(); app.lastTimestamp = null; });
+  document.addEventListener('visibilitychange', () => { app.keys.clear(); app.lastTimestamp = null;if(document.hidden)app.audio.suspend();else if(app.audio.ctx)app.audio.unlock(); });
 }

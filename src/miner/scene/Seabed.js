@@ -70,6 +70,7 @@ export function createSeabed(scene) {
     shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', 'float mineral=stoneField(vStone);diffuseColor.rgb*=.65+mineral*.8;');
     shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_maps>', 'normal=perturbNormalArb(-vViewPosition,normal,vec2(dFdx(mineral),dFdy(mineral))*.16,faceDirection);');
   };
+  const obstacles = [];
   const matrix = new THREE.Object3D(), rand = i => cellSeed(i, 71, CONFIG.seed) / 4294967295;
   for (let i = 0; i < 650; i++) {
     const radius = 5 + rand(i * 7) ** 1.5 * 130, angle = rand(i * 7 + 1) * Math.PI * 2;
@@ -79,8 +80,9 @@ export function createSeabed(scene) {
     matrix.scale.set(scale * 1.4, scale * (0.4 + rand(i * 7 + 3)), scale);
     matrix.rotation.set(rand(i * 7 + 4), rand(i * 7 + 5) * 6.28, rand(i * 7 + 6) * 0.4);
     matrix.updateMatrix(); rocks.setMatrixAt(i, matrix.matrix);
+    if(scale>.45)obstacles.push(new THREE.Sphere(matrix.position.clone(),scale*1.5));
     rocks.setColorAt(i, c.setScalar(0.65 + rand(i * 9) * 0.55));
   }
   rocks.castShadow = true; rocks.receiveShadow = true; group.add(rocks); scene.add(group);
-  return { group, heightAt: floorHeight };
+  return { group, ground, rocks, obstacles, heightAt: floorHeight };
 }
