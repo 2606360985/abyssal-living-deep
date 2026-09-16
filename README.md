@@ -20,6 +20,8 @@ The playable operations loop is:
 
 Use `?scenario=dashboard-demo` for a deterministic populated dashboard used in visual QA. Normal missions begin with empty operational history. Career totals, unlocked vehicles and completed missions use the versioned `abyss-miner.save.v1` local save; current position and in-progress mission state reset on reload.
 
+The cockpit chassis uses deterministic nine-slice crops from the approved 1536×1024 concept artwork. Regenerate the committed frame assets with `powershell -ExecutionPolicy Bypass -File tools/extract-cockpit-skin.ps1`. Run `npm run qa:cockpit-art` while the dev server is running to save normal, demo, alert and emergency visual states under `tools/shots/`.
+
 | Control | Action |
 | --- | --- |
 | W / S | Forward / reverse with inertia |

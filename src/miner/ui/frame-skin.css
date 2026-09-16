@@ -1,0 +1,88 @@
+/*
+ * Cropped directly from the approved 1536x1024 cockpit concept.
+ * These images provide structure only; live labels, data and interaction remain DOM-driven.
+ */
+#twin-cockpit{
+  --frame-side:url('./assets/frame/side-panel-frame.png');
+  --frame-viewport:url('./assets/frame/viewport-frame.png');
+  --frame-control:url('./assets/frame/control-frame.png');
+  --frame-metric:url('./assets/frame/metric-frame.png');
+  --frame-rail-v:url('./assets/frame/vertical-rail.png');
+  --frame-rail-h:url('./assets/frame/horizontal-rail.png');
+}
+
+/* Remove the synthetic chassis so the source artwork is the only visible outer frame. */
+#twin-cockpit::after,.hud-panel::before,.hud-panel::after,.viewport-panel::before,.viewport-panel::after{display:none}
+
+.cockpit-header{
+  border-style:solid;
+  border-width:8px 15px 9px;
+  border-color:transparent;
+  border-image-source:url('./assets/frame/header-frame.png');
+  border-image-slice:9 18 10 18;
+  border-image-width:8px 15px 9px;
+  border-image-repeat:stretch;
+  clip-path:none;
+  box-shadow:none;
+  background:#061018e8;
+}
+
+.hud-panel{
+  border:8px solid transparent;
+  border-image-source:var(--frame-side);
+  border-image-slice:10;
+  border-image-width:8px;
+  border-image-repeat:stretch;
+  clip-path:none;
+  box-shadow:none;
+  background:linear-gradient(150deg,#091721f2,#041018f2);
+}
+
+.viewport-panel{
+  border:10px solid transparent;
+  border-image-source:var(--frame-viewport);
+  border-image-slice:12;
+  border-image-width:10px;
+  border-image-repeat:stretch;
+  clip-path:none;
+  box-shadow:none;
+  background:#02070a;
+}
+
+.control-panel{
+  border-image-source:var(--frame-control);
+  border-image-slice:10;
+  border-image-width:8px;
+}
+
+.metric-row .hud-panel,.intel-row .hud-panel{
+  border-image-source:var(--frame-metric);
+  border-image-slice:9;
+  border-image-width:7px;
+}
+
+/* Rails bridge the grid gaps into one continuous mechanical chassis. */
+.center-stack,.right-column,.bottom-deck{position:relative}
+.center-stack::before,.right-column::before{
+  content:"";position:absolute;z-index:24;top:0;bottom:0;left:-8px;width:8px;
+  pointer-events:none;background:var(--frame-rail-v) center/100% 100% no-repeat;
+}
+.bottom-deck::before{
+  content:"";position:absolute;z-index:24;left:0;right:0;top:-7px;height:7px;
+  pointer-events:none;background:var(--frame-rail-h) center/100% 100% no-repeat;
+}
+
+/* The tool art is a dedicated crop, not a runtime view into the full reference image. */
+.tool i{background-image:url('./assets/frame/tool-slot-atlas.png');background-size:311px 166px}
+.tool:nth-child(1) i{background-position:-11px -21px}.tool:nth-child(2) i{background-position:-88px -19px}.tool:nth-child(3) i{background-position:-164px -18px}.tool:nth-child(4) i{background-position:-239px -18px}.tool:nth-child(5) i{background-position:-10px -94px}.tool:nth-child(6) i{background-position:-88px -94px}.tool:nth-child(7) i{background-position:-163px -94px}.tool:nth-child(8) i{background-position:-238px -94px}
+
+@media(max-width:1500px){
+  .cockpit-header{border-width:8px 15px 9px}
+  .hud-panel{border-width:8px;border-image-width:8px}
+  .viewport-panel{border-width:10px;border-image-width:10px}
+}
+
+/* Full-scene mode must remain frameless. */
+#twin-cockpit.hud-hidden .viewport-panel{border:0;border-image:none}
+#twin-cockpit.hud-hidden .center-stack::before,#twin-cockpit.hud-hidden .right-column::before,#twin-cockpit.hud-hidden .bottom-deck::before{display:none}
+

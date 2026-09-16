@@ -46,7 +46,8 @@
     "smoke": "node tools/smoke.mjs",
     "qa:miner": "node tools/miner-qa.mjs --checks --seconds 60 --tag m1-final",
     "test:twin": "node tools/miner-state-test.mjs && node tools/twin-state-test.mjs",
-    "qa:cockpit": "node tools/cockpit-qa.mjs"
+    "qa:cockpit": "node tools/cockpit-qa.mjs",
+    "qa:cockpit-art": "node tools/cockpit-art-qa.mjs"
   },
   "dependencies": {
     "three": "^0.169.0"

@@ -1,0 +1,115 @@
+{
+  "source": "concept-ui-reference.png",
+  "sourceSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "generatedAt": "deterministic",
+  "assets": [
+    {
+      "name": "header-frame",
+      "x": 0,
+      "y": 0,
+      "width": 1536,
+      "height": 51,
+      "slice": "9 18 10 18",
+      "family": "header",
+      "keep": {
+        "top": 12,
+        "left": 22,
+        "bottom": 13,
+        "right": 22
+      }
+    },
+    {
+      "name": "side-panel-frame",
+      "x": 4,
+      "y": 52,
+      "width": 330,
+      "height": 205,
+      "slice": "10",
+      "family": "side",
+      "keep": {
+        "top": 14,
+        "left": 14,
+        "bottom": 14,
+        "right": 14
+      }
+    },
+    {
+      "name": "viewport-frame",
+      "x": 341,
+      "y": 52,
+      "width": 852,
+      "height": 613,
+      "slice": "12",
+      "family": "viewport",
+      "keep": {
+        "top": 16,
+        "left": 16,
+        "bottom": 16,
+        "right": 16
+      }
+    },
+    {
+      "name": "control-frame",
+      "x": 1199,
+      "y": 486,
+      "width": 332,
+      "height": 205,
+      "slice": "10",
+      "family": "control",
+      "keep": {
+        "top": 14,
+        "left": 14,
+        "bottom": 14,
+        "right": 14
+      }
+    },
+    {
+      "name": "metric-frame",
+      "x": 3,
+      "y": 690,
+      "width": 295,
+      "height": 179,
+      "slice": "9",
+      "family": "metric",
+      "keep": {
+        "top": 13,
+        "left": 13,
+        "bottom": 13,
+        "right": 13
+      }
+    },
+    {
+      "name": "vertical-rail",
+      "x": 334,
+      "y": 52,
+      "width": 8,
+      "height": 635,
+      "slice": "none",
+      "family": "rail",
+      "keep": null
+    },
+    {
+      "name": "horizontal-rail",
+      "x": 3,
+      "y": 685,
+      "width": 1528,
+      "height": 7,
+      "slice": "none",
+      "family": "rail",
+      "keep": null
+    },
+    {
+      "name": "tool-slot-atlas",
+      "x": 15,
+      "y": 87,
+      "width": 311,
+      "height": 166,
+      "slice": "none",
+      "family": "tools",
+      "keep": null
+    }
+  ]
+}
