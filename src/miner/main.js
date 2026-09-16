@@ -42,9 +42,9 @@ class MinerApp {
     const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
     if (!gl.getExtension('EXT_color_buffer_float')) throw new Error('此场景需要支持浮点渲染目标的 WebGL2。');
     this.caps = { renderer: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER), backend: 'WebGL2' };
-    this.scene = new THREE.Scene(); this.scene.background = new THREE.Color().setRGB(.001,.004,.0045);
-    this.scene.fog = new THREE.FogExp2(this.scene.background, 0.029);
-    this.scene.add(new THREE.HemisphereLight(0x637b7c, 0x303533, 0.22));
+    this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x001a33);
+    this.scene.fog = new THREE.FogExp2(0x001a33, 0.020);
+    this.scene.add(new THREE.HemisphereLight(0x2784a8, 0x04131e, 0.42));
     this.camera = new THREE.PerspectiveCamera(43, 1, 0.1, 110);
     this.seabed = createSeabed(this.scene); this.rov = createROV(this.scene,this.quality); this.originalVehicleColor = this.rov.materials.yellow.color.getHex();
     this.motion = new Motion(this.rov, this.seabed.heightAt); this.startY = this.rov.root.position.y;
@@ -104,7 +104,7 @@ class MinerApp {
   }
   setWaypoint(x,z){this.waypoint=new THREE.Vector3(x,this.seabed.heightAt(x,z)+4,z);this.twin.dispatch('navigation.waypoint',{x,z});this.hud.showMessage('航点已设置 · 选择 AUTO 开始导航');}
   setViewMode(mode) {
-    this.twin.dispatch('ui.view',{mode});this.viewInputLocked=['map','simulation'].includes(mode);
+    this.twin.dispatch('ui.view',{mode});this.viewInputLocked=['map','simulation','upgrade'].includes(mode);
     if(mode==='model'){this.previousRigMode=this.rig.mode;this.rig.setMode('inspect');}
     else if(this.previousRigMode){this.rig.setMode(this.previousRigMode==='free'?'follow':this.previousRigMode);this.previousRigMode=null;}
   }
@@ -117,7 +117,7 @@ class MinerApp {
   }
   rearm() { this.twin.dispatch('emergency.rearm');this.hud.showMessage('执行系统已重新武装');this.audio.confirm(); }
   resetMission(keepCareer=true) { this.twin.dispatch('mission.reset',{keepCareer});this.simulation.resetSession();this.director.goto('arrival');this.applyVehicleSkin('A07');this.hud.showMessage('任务已重置 · 等待声呐扫描'); }
-  clearSave() { this.repository.clear();this.resetMission(false);this.hud.showMessage('本地存档已清除'); }
+  clearSave() { this.repository.clear();this.twin.save=this.repository.defaults();this.resetMission(false);this.hud.showMessage('本地存档已清除'); }
   controlledKeys() {
     const s=this.twin.getSnapshot();
     if(s.vehicle.emergency||this.viewInputLocked||s.vehicle.controlMode==='hold')return new Set();
@@ -134,6 +134,7 @@ class MinerApp {
     error.textContent = message; document.body.appendChild(error);
   }
   resize() {
+    this.hud?.fitToViewport?.();
     this.dpr = Math.min(devicePixelRatio || 1, CONFIG.maxDpr);
     const measured=this.hud?.getViewportRect?.();
     if(measured?.width>=32&&measured?.height>=32)this.lastViewportRect={width:measured.width,height:measured.height};

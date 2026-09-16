@@ -31,6 +31,15 @@ try {
   await load(demoUrl.href);
   await page.screenshot({ path: path.join(shots, 'cockpit-native-demo.png') });
 
+  await page.evaluate(() => window.__miner.setViewMode('map'));
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  await page.screenshot({ path: path.join(shots, 'cockpit-mission-map.png') });
+
+  await page.evaluate(() => window.__miner.setViewMode('upgrade'));
+  await new Promise(resolve => setTimeout(resolve, 250));
+  await page.screenshot({ path: path.join(shots, 'cockpit-upgrades.png') });
+  await page.evaluate(() => window.__miner.setViewMode('external'));
+
   await page.evaluate(() => window.__miner.twin.dispatch('alert.raise', {
     level: 'CRITICAL', source: 'PUMP', message: '吸矿泵负载达到临界阈值。', key: 'art-qa-critical',
   }));
@@ -42,7 +51,7 @@ try {
   await page.screenshot({ path: path.join(shots, 'cockpit-native-emergency.png') });
 
   if (errors.length) throw new Error(`Browser errors:\n${errors.join('\n')}`);
-  console.log(JSON.stringify({ screenshots: ['normal', 'demo', 'alert', 'emergency'], errors }, null, 2));
+  console.log(JSON.stringify({ screenshots: ['normal', 'demo', 'mission-map', 'upgrades', 'alert', 'emergency'], errors }, null, 2));
 } finally {
   await browser.close();
 }

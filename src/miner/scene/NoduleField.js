@@ -9,17 +9,25 @@ export function sampleData(id,seed=713){
 /** Mineral percentages are normalized game assay values, not real bulk chemistry. */
 export class NoduleField {
   constructor(app){
-    this.app=app;this.center=new THREE.Vector3(0,app.seabed.heightAt(0,112),112);this.group=new THREE.Group();this.group.name='多金属结核矿区';app.scene.add(this.group);
+    this.app=app;
+    this.zones=[
+      {id:'delta7',label:'Δ-7 富锰结核矿带',resource:'Mn',x:0,z:112,radius:25,richness:1,color:[255,190,53],confirmed:true},
+      {id:'cobalt3',label:'CO-3 钴壳推测区',resource:'Co',x:-42,z:76,radius:18,richness:.58,color:[135,118,255],confirmed:false},
+      {id:'nickel2',label:'NI-2 镍结核推测区',resource:'Ni',x:39,z:72,radius:17,richness:.46,color:[80,210,230],confirmed:false},
+    ];
+    const primary=this.zones[0];this.center=new THREE.Vector3(primary.x,app.seabed.heightAt(primary.x,primary.z),primary.z);this.group=new THREE.Group();this.group.name='多金属结核资源带';app.scene.add(this.group);
     this.candidates=[];this.pointer=new THREE.Vector2(0,0);this.ray=new THREE.Raycaster();this.projected=new THREE.Vector3();this.matrix=new THREE.Object3D();this.hover=null;
-    this.material=new THREE.MeshStandardMaterial({color:0x242b28,roughness:.73,metalness:.18});
+    this.material=new THREE.MeshStandardMaterial({color:0x31332b,roughness:.73,metalness:.18});
     this.meshes=[];const r=i=>cellSeed(i,42,713)/4294967295;
     for(let type=0;type<3;type++){
+      const zone=this.zones[type];
       const source=new THREE.IcosahedronGeometry(1,1);source.deleteAttribute('normal');source.deleteAttribute('uv');const geo=mergeVertices(source);source.dispose();const p=geo.attributes.position;
       for(let i=0;i<p.count;i++){const s=.85+r(i+type*100)*.25;p.setXYZ(i,p.getX(i)*s,p.getY(i)*s*.65,p.getZ(i)*s);}geo.computeVertexNormals();
-      const mesh=new THREE.InstancedMesh(geo,this.material,1000);mesh.castShadow=true;mesh.receiveShadow=true;this.group.add(mesh);this.meshes.push(mesh);
+      const material=type===0?this.material:new THREE.MeshStandardMaterial({color:type===1?0x252634:0x203136,roughness:.76,metalness:.2});
+      const mesh=new THREE.InstancedMesh(geo,material,1000);mesh.name=zone.label;mesh.castShadow=true;mesh.receiveShadow=true;this.group.add(mesh);this.meshes.push(mesh);
       for(let i=0;i<1000;i++){
-        const index=type*1000+i,angle=r(index*5)*Math.PI*2,rad=Math.sqrt(r(index*5+1))*23;
-        const x=Math.cos(angle)*rad,z=112+Math.sin(angle)*rad,size=.055+r(index*5+2)**2*.16;
+        const index=type*1000+i,angle=r(index*5)*Math.PI*2,rad=Math.sqrt(r(index*5+1))*zone.radius;
+        const x=zone.x+Math.cos(angle)*rad,z=zone.z+Math.sin(angle)*rad,size=.055+r(index*5+2)**2*.16;
         this.matrix.position.set(x,app.seabed.heightAt(x,z)+size*.22,z);this.matrix.scale.setScalar(size);this.matrix.rotation.set(r(index*5+3)*.4,r(index*5+4)*6.28,0);this.matrix.updateMatrix();mesh.setMatrixAt(i,this.matrix.matrix);
       }
     }

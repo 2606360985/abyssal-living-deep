@@ -1,5 +1,21 @@
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const nowTime = () => new Date().toLocaleTimeString('zh-CN', { hour12: false });
+const UPGRADE_SPECS = {
+  collector: { label: '高扭矩采集齿列', baseCost: 350, maxLevel: 3 },
+  pump: { label: '低损耗涡流泵', baseCost: 450, maxLevel: 3 },
+  cargo: { label: '高密度矿舱', baseCost: 300, maxLevel: 3 },
+};
+
+const upgradeCost = (id, level) => UPGRADE_SPECS[id].baseCost * (level + 1);
+
+function updateMissionText(state) {
+  const mission = state.mission;
+  if (mission.completed) mission.objective = '任务已完成 · 前往装备升级使用奖励金币';
+  else if (mission.objectives.find(item => item.id === 'deploy').done) mission.objective = `在 Δ-7 矿带采集结核 ${Math.max(0, mission.plannedYield - mission.extracted).toFixed(1)} t`;
+  else if (mission.objectives.find(item => item.id === 'sample').done) mission.objective = '切换至 C-01 采集器并返回 Δ-7 作业区';
+  else if (mission.objectives.find(item => item.id === 'survey').done) mission.objective = '接近高品位节点，在 4m 内获取矿石样本';
+  else mission.objective = '沿地图航线前往 Δ-7，在 20m 内发射主动声呐';
+}
 
 export const SAVE_KEY = 'abyss-miner.save.v1';
 
@@ -10,6 +26,7 @@ export class SaveRepository {
       version: 1,
       lifetimeYield: { Ni: 0, Co: 0, Cu: 0, Mn: 0 },
       unlockedVehicles: ['A07'], completedMissions: [],
+      credits: 0, upgrades: { collector: 0, pump: 0, cargo: 0 },
       settings: { audioMuted: false, reducedMotion: false },
       totals: { operatingSeconds: 0, cargoTonnes: 0, samples: 0 },
     };
@@ -22,6 +39,7 @@ export class SaveRepository {
       return {
         ...base, ...parsed,
         lifetimeYield: { ...base.lifetimeYield, ...parsed.lifetimeYield },
+        upgrades: { ...base.upgrades, ...parsed.upgrades },
         settings: { ...base.settings, ...parsed.settings },
         totals: { ...base.totals, ...parsed.totals },
       };
@@ -39,7 +57,8 @@ function baseState(save, demo = false) {
   const demoResources = demo ? { Ni: 38.3, Co: 10.4, Cu: 24.4, Mn: 1668.9 } : { Ni: 0, Co: 0, Cu: 0, Mn: 0 };
   const unlocked = new Set(save.unlockedVehicles || ['A07']);
   if (demo) unlocked.add('C01');
-  return {
+  const upgradeLevels = { collector: 0, pump: 0, cargo: 0, ...(save.upgrades || {}) };
+  const state = {
     version: 1,
     clock: { startedAt: Date.now(), utc: new Date().toISOString(), missionSeconds: demo ? 12 * 3600 + 374 : 0 },
     ui: { workspaceMode: 'explore', viewMode: 'external', visible: true, performance: false, selectedSystem: 'navigation', mapLayers: { topo: true, resource: true, waypoints: true } },
@@ -51,13 +70,14 @@ function baseState(save, demo = false) {
       },
     },
     telemetry: { depth: 3800, altitude: 4, heading: 0, speed: 0, thrust: 0, x: 0, y: 0, z: 0 },
-    navigation: { waypoint: null },
+    navigation: { waypoint: null, missionTarget: { x: 0, z: 112, label: 'Δ-7 富锰结核矿带' } },
     target: null,
     sample: null,
     mission: {
-      id: 'KRONOS-1', site: 'CCZ-A7', area: '克拉里昂-克利珀顿区',
-      objective: '识别结核并完成 5 吨试采', status: '勘探中', progress: demo ? 72 : 5,
-      plannedYield: 5, extracted: 0, completed: false,
+      id: 'KRONOS-1', title: '沉睡的蓝金', site: 'CCZ-A7', area: '克拉里昂-克利珀顿区',
+      story: '母船“曙光号”的储能阵列受损。指挥中心需要一批富锰结核完成深潜电池的应急修复。',
+      objective: '沿地图航线前往 Δ-7，在 20m 内发射主动声呐', status: '任务已接收', progress: demo ? 72 : 5,
+      plannedYield: 5, extracted: 0, completed: false, rewardCredits: 800, rewardClaimed: false,
       objectives: [
         { id: 'survey', label: '声呐扫描矿区', done: demo },
         { id: 'sample', label: '获取并分析样本', done: demo },
@@ -65,8 +85,10 @@ function baseState(save, demo = false) {
         { id: 'extract', label: '完成 5 吨试采', done: false },
       ],
     },
+    economy: { credits: demo ? Math.max(1200, save.credits || 0) : save.credits || 0 },
+    upgrades: Object.fromEntries(Object.entries(UPGRADE_SPECS).map(([id, spec]) => [id, { ...spec, id, level: clamp(Number(upgradeLevels[id]) || 0, 0, spec.maxLevel) }])),
     mining: { active: false, eligible: false, rate: demo ? 142 : 0, pumpLoad: demo ? 78 : 0, tool: 'collector', extracted: 0 },
-    cargo: { current: demo ? 1742 : 0, capacity: 3000, level: demo ? 58.07 : 0 },
+    cargo: { current: demo ? 1742 : 0, capacity: 3000 + upgradeLevels.cargo * 750, level: demo ? 1742 / (3000 + upgradeLevels.cargo * 750) * 100 : 0 },
     resources: demoResources,
     environment: { temperature: 2.1, pressure: 380, salinity: 34.7, oxygen: 5.8, current: 0.18, turbidity: demo ? 46 : 8, plume: demo ? 31 : 4 },
     power: { total: demo ? 1275 : 420, available: 2000, propulsion: 180, pump: demo ? 620 : 0, tools: 80, other: 160, reserve: demo ? 36.25 : 79 },
@@ -83,7 +105,7 @@ function baseState(save, demo = false) {
       logEntry('OK', 'NAV', 'ROV 已抵达目标区域。'),
       logEntry('INFO', 'SONAR', '识别到多金属结核矿区。'),
       logEntry('OK', 'MINING', 'C-01 采集器进入连续作业。'),
-    ] : [logEntry('INFO', 'SYSTEM', '数字孪生链路已建立。')],
+    ] : [logEntry('INFO', 'MISSION', 'KRONOS-1「沉睡的蓝金」已接收，导航数据已写入海床地图。'), logEntry('INFO', 'SYSTEM', '数字孪生链路已建立。')],
     alerts: demo ? [
       { ...logEntry('WARN', 'ENV', '颗粒物密度升高，正在监控羽流。'), acknowledged: false },
       { ...logEntry('INFO', 'MINING', '泵负载接近任务推荐区间。'), acknowledged: false },
@@ -95,6 +117,8 @@ function baseState(save, demo = false) {
       depth: [], temperature: [], lifetime: { ...save.lifetimeYield },
     },
   };
+  updateMissionText(state);
+  return state;
 }
 
 export class DigitalTwinStore {
@@ -132,12 +156,22 @@ export class DigitalTwinStore {
       case 'ui.performance': s.ui.performance = data.visible; break;
       case 'ui.system': s.ui.selectedSystem = data.id; s.ui.viewMode = 'model'; break;
       case 'ui.mapLayer': s.ui.mapLayers[data.layer] = !s.ui.mapLayers[data.layer]; break;
+      case 'upgrade.purchase': {
+        const upgrade = s.upgrades[data.id];
+        if (!upgrade || upgrade.level >= upgrade.maxLevel) break;
+        const cost = upgradeCost(data.id, upgrade.level);
+        if (s.economy.credits < cost) { this.addLog('WARN', 'UPGRADE', `金币不足：${upgrade.label}需要 ${cost}。`); break; }
+        s.economy.credits -= cost; upgrade.level++;
+        if (data.id === 'cargo') { s.cargo.capacity = 3000 + upgrade.level * 750; s.cargo.level = s.cargo.current / s.cargo.capacity * 100; }
+        this.addLog('OK', 'UPGRADE', `${upgrade.label}已升级至 L${upgrade.level}。`);
+        break;
+      }
       case 'control.mode': s.vehicle.controlMode = data.mode; this.addLog('INFO', 'CONTROL', `控制模式切换为 ${data.mode.toUpperCase()}。`); break;
       case 'navigation.waypoint': s.navigation.waypoint = { x: data.x, z: data.z }; this.addLog('INFO', 'NAV', `新航点已设置：X ${data.x.toFixed(0)} / Z ${data.z.toFixed(0)}。`); break;
       case 'vehicle.switch':
         if (!s.vehicle.profiles[data.id]?.unlocked || s.vehicle.emergency) break;
         s.vehicle.activeId = data.id; s.mining.active = false; s.mining.tool = data.id === 'C01' ? 'collector' : 'sonar';
-        if (data.id === 'C01') { s.mission.objectives.find(item => item.id === 'deploy').done = true; s.mission.progress = Math.max(s.mission.progress, 60); s.mission.status = '采集器部署'; }
+        if (data.id === 'C01') { s.mission.objectives.find(item => item.id === 'deploy').done = true; s.mission.progress = Math.max(s.mission.progress, 60); s.mission.status = '采集阶段'; }
         this.addLog('OK', 'VEHICLE', `控制权切换至 ${s.vehicle.profiles[data.id].name}。`); break;
       case 'vehicle.unlock':
         if (s.vehicle.profiles[data.id]) s.vehicle.profiles[data.id].unlocked = true;
@@ -181,7 +215,8 @@ export class DigitalTwinStore {
           if (s.mission.extracted >= s.mission.plannedYield && !s.mission.completed) {
             s.mission.completed = true; s.mission.status = '任务完成'; s.mining.active = false;
             s.mission.objectives.find(item => item.id === 'extract').done = true;
-            this.addLog('OK', 'MISSION', 'KRONOS-1 试采目标已完成。');
+            if (!s.mission.rewardClaimed) { s.mission.rewardClaimed = true; s.economy.credits += s.mission.rewardCredits; }
+            this.addLog('OK', 'MISSION', `KRONOS-1「沉睡的蓝金」完成，获得 ${s.mission.rewardCredits} 金币。`);
           }
         }
         s.systems.mining.status = s.mining.active ? 'online' : 'standby'; s.systems.mining.load = Math.round(rate / 1.8);
@@ -210,13 +245,15 @@ export class DigitalTwinStore {
         for (const alert of s.alerts) if (alert.key === 'emergency') alert.acknowledged = true;
         this.addLog('OK', 'CONTROL', '执行系统已重新武装。'); break;
       case 'mission.reset': {
-        const fresh = baseState(this.save, false);
+        const career = data.keepCareer === false ? { ...this.save, credits: 0, upgrades: { collector: 0, pump: 0, cargo: 0 }, unlockedVehicles: ['A07'] } : this.save;
+        const fresh = baseState(career, false);
         fresh.analytics.lifetime = data.keepCareer === false ? { Ni: 0, Co: 0, Cu: 0, Mn: 0 } : { ...s.analytics.lifetime };
         fresh.vehicle.profiles.C01.unlocked = data.keepCareer === false ? false : s.vehicle.profiles.C01.unlocked;
         this.state = fresh; break;
       }
       default: throw new Error(`Unknown twin event: ${type}`);
     }
+    updateMissionText(this.state);
     this.notify();
   }
 }

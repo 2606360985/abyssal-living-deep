@@ -76,12 +76,6 @@
 .tool i{background-image:url('./assets/frame/tool-slot-atlas.png');background-size:311px 166px}
 .tool:nth-child(1) i{background-position:-11px -21px}.tool:nth-child(2) i{background-position:-88px -19px}.tool:nth-child(3) i{background-position:-164px -18px}.tool:nth-child(4) i{background-position:-239px -18px}.tool:nth-child(5) i{background-position:-10px -94px}.tool:nth-child(6) i{background-position:-88px -94px}.tool:nth-child(7) i{background-position:-163px -94px}.tool:nth-child(8) i{background-position:-238px -94px}
 
-@media(max-width:1500px){
-  .cockpit-header{border-width:8px 15px 9px}
-  .hud-panel{border-width:8px;border-image-width:8px}
-  .viewport-panel{border-width:10px;border-image-width:10px}
-}
-
 /* Full-scene mode must remain frameless. */
 #twin-cockpit.hud-hidden .viewport-panel{border:0;border-image:none}
 #twin-cockpit.hud-hidden .center-stack::before,#twin-cockpit.hud-hidden .right-column::before,#twin-cockpit.hud-hidden .bottom-deck::before{display:none}

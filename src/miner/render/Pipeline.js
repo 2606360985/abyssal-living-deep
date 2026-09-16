@@ -108,9 +108,12 @@ export class Pipeline {
             vec4 s=texture2D(uScatter,uv);float w=1./(1.+abs(s.a-d)*5.);
             fog+=s.rgb*w;weights+=w;
           }
-          vec3 col=texture2D(uScene,vUv).rgb*exp(-vec3(.035,.025,.024)*d)+fog/max(weights,.0001);
+          vec3 transmission=exp(-vec3(.034,.023,.014)*d);
+          vec3 water=vec3(.0025,.024,.058);
+          vec3 col=texture2D(uScene,vUv).rgb*transmission+water*(1.-transmission)*.72+fog/max(weights,.0001);
           vec4 sediment=texture2D(uSediment,vUv);col=col*(1.-sediment.a)+sediment.rgb;
-          float vignette=1.-.2*smoothstep(.25,.85,length((vUv-.5)*vec2(1.,.8)));
+          col=(col-.018)*1.13+.018;
+          float vignette=1.-.16*smoothstep(.25,.85,length((vUv-.5)*vec2(1.,.8)));
           gl_FragColor=vec4(col*vignette,1.);
         }`,
     }));

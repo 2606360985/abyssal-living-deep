@@ -9,7 +9,7 @@ class MemoryStorage {
 }
 
 const storage = new MemoryStorage(), repository = new SaveRepository(storage), defaults = repository.load();
-assert.equal(defaults.version, 1); assert.deepEqual(defaults.unlockedVehicles, ['A07']);
+assert.equal(defaults.version, 1); assert.deepEqual(defaults.unlockedVehicles, ['A07']); assert.equal(defaults.credits, 0); assert.deepEqual(defaults.upgrades, { collector: 0, pump: 0, cargo: 0 });
 repository.save({ ...defaults, unlockedVehicles: ['A07', 'C01'] }); assert.equal(JSON.parse(storage.getItem(SAVE_KEY)).unlockedVehicles[1], 'C01');
 repository.clear(); assert.equal(storage.getItem(SAVE_KEY), null);
 
@@ -22,6 +22,9 @@ store.dispatch('vehicle.switch', { id: 'C01' }); assert.equal(store.getSnapshot(
 store.dispatch('mining.eligibility', { eligible: true }); store.dispatch('mining.toggle', { active: true });
 store.dispatch('simulation.tick', { dt: 3600, rate: 100, pumpLoad: 86, totalPower: 1400, turbidity: 75, plume: 50 });
 assert.equal(store.getSnapshot().cargo.current, 100); assert.ok(Math.abs(store.getSnapshot().resources.Ni - 2.2) < 1e-9); assert.equal(store.getSnapshot().mining.extracted, 100);
+assert.equal(store.getSnapshot().mission.completed, true); assert.equal(store.getSnapshot().economy.credits, 800);
+store.dispatch('upgrade.purchase', { id: 'collector' }); assert.equal(store.getSnapshot().upgrades.collector.level, 1); assert.equal(store.getSnapshot().economy.credits, 450);
+store.dispatch('upgrade.purchase', { id: 'pump' }); assert.equal(store.getSnapshot().upgrades.pump.level, 1); assert.equal(store.getSnapshot().economy.credits, 0);
 store.dispatch('emergency.stop'); assert.equal(store.getSnapshot().mining.active, false); assert.equal(store.getSnapshot().vehicle.emergency, true);
 store.dispatch('emergency.rearm'); assert.equal(store.getSnapshot().vehicle.controlMode, 'manual');
 store.dispatch('alert.raise', { level: 'WARN', source: 'TEST', message: 'dedupe', key: 'same' });

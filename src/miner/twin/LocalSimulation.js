@@ -49,9 +49,11 @@ export class LocalSimulation {
     if (!eligible && s.mining.active) this.store.dispatch('mining.toggle', { active: false });
 
     const efficiency = eligible ? clamp(1 - Math.max(0, distance - 8) / 24, .55, 1) : 0;
-    const rate = s.mining.active ? 142 * efficiency : 0;
-    const pumpLoad = s.mining.active ? 72 + efficiency * 14 + Math.sin(a.time * .35) * 3 : Math.max(0, s.mining.pumpLoad - step * 35);
-    const totalPower = Math.round(360 + s.telemetry.thrust * 5.2 + (s.mining.active ? 620 + pumpLoad * 3.2 : 0));
+    const collectorLevel = s.upgrades.collector.level, pumpLevel = s.upgrades.pump.level;
+    const rateMultiplier = 1 + collectorLevel * .25 + pumpLevel * .1;
+    const rate = s.mining.active ? 142 * efficiency * rateMultiplier : 0;
+    const pumpLoad = s.mining.active ? (72 + efficiency * 14 + Math.sin(a.time * .35) * 3) * (1 - pumpLevel * .055) : Math.max(0, s.mining.pumpLoad - step * 35);
+    const totalPower = Math.round(360 + s.telemetry.thrust * 5.2 + (s.mining.active ? 620 + pumpLoad * 3.2 - pumpLevel * 55 : 0));
     const turbidityTarget = s.mining.active ? 48 + pumpLoad * .42 : 8 + Math.min(28, a.sediment.alive / 32);
     const turbidity = s.environment.turbidity + (turbidityTarget - s.environment.turbidity) * Math.min(1, step * .8);
     const plumeTarget = s.mining.active ? 24 + pumpLoad * .32 : 4;
@@ -83,14 +85,17 @@ export class LocalSimulation {
     for (const key of ['Ni', 'Co', 'Cu', 'Mn']) lifetime[key] = previous.lifetimeYield[key] + Math.max(0, s.resources[key] - this.persisted.resources[key]);
     const completed = new Set(previous.completedMissions);
     if (s.mission.completed) completed.add(s.mission.id);
-    this.repository.save({
+    const saved = {
       ...previous,
       lifetimeYield: lifetime,
       unlockedVehicles: Object.values(s.vehicle.profiles).filter(profile => profile.unlocked).map(profile => profile.id),
       completedMissions: [...completed],
+      credits: s.economy.credits,
+      upgrades: Object.fromEntries(Object.entries(s.upgrades).map(([id, upgrade]) => [id, upgrade.level])),
       settings: { ...previous.settings, audioMuted: this.app.audio.muted },
       totals: { operatingSeconds: previous.totals.operatingSeconds + Math.max(0, s.clock.missionSeconds - this.persisted.seconds), cargoTonnes: previous.totals.cargoTonnes + Math.max(0, s.mining.extracted - this.persisted.extracted), samples: previous.totals.samples + Number(!!s.sample && !this.persisted.sample) },
-    });
+    };
+    this.repository.save(saved); this.store.save = saved;
     this.persisted = { resources: { ...s.resources }, extracted: s.mining.extracted, sample: !!s.sample, seconds: s.clock.missionSeconds };
   }
   resetSession() { this.persisted = { resources: { Ni: 0, Co: 0, Cu: 0, Mn: 0 }, extracted: 0, sample: false, seconds: 0 }; this.completedPersisted=false; }
