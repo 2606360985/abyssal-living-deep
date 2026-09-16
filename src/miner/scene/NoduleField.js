@@ -33,7 +33,7 @@ export class NoduleField {
     }
     this.group.traverse(o=>o.layers.enable(1));
     this._dragDist=0;
-    app.renderer.domElement.addEventListener('pointermove',e=>{this.pointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);this._dragDist+=Math.abs(e.movementX)+Math.abs(e.movementY);});
+    app.renderer.domElement.addEventListener('pointermove',e=>{const rect=app.renderer.domElement.getBoundingClientRect();this.pointer.set((e.clientX-rect.left)/Math.max(1,rect.width)*2-1,1-(e.clientY-rect.top)/Math.max(1,rect.height)*2);this._dragDist+=Math.abs(e.movementX)+Math.abs(e.movementY);});
     app.renderer.domElement.addEventListener('pointerdown',()=>{this._dragDist=0;});
     app.renderer.domElement.addEventListener('pointerup',e=>{if(e.button===0&&app.rig.mode!=='free'&&this._dragDist<10)this.confirm();});
   }
@@ -46,7 +46,8 @@ export class NoduleField {
   update(){
     const a=this.app;if(a.state.sample||a.state.inputLocked||!a.state.scanned||!['nodules','sampling'].includes(a.director.id)){a.hud.showCandidate(null);return;}
     let closest=null,best=Infinity;
-    for(const c of this.candidates){if(!this.valid(c))continue;const screen=c.position.clone().project(a.camera),d=Math.hypot((screen.x-this.pointer.x)*innerWidth,(screen.y-this.pointer.y)*innerHeight)/2;if(d<best){closest=c;best=d;}}
+    const rect=a.renderer.domElement.getBoundingClientRect();
+    for(const c of this.candidates){if(!this.valid(c))continue;const screen=c.position.clone().project(a.camera),d=Math.hypot((screen.x-this.pointer.x)*rect.width,(screen.y-this.pointer.y)*rect.height)/2;if(d<best){closest=c;best=d;}}
     this.hover=best<65?closest:null;
     const chosen=a.state.selected&&this.valid(a.state.selected)?a.state.selected:closest;
     if(chosen){const p=chosen.position.clone().project(a.camera);a.hud.showCandidate({x:(p.x+1)/2,y:(1-p.y)/2},a.state.selected===chosen?'已锁定 · 左键采样':'候选样本 · 左键选定');}

@@ -44,7 +44,9 @@
     "preview": "vite preview --host",
     "test": "node tools/quality-sim.mjs && node tools/underwater-sim.mjs && node tools/connected-ocean-sim.mjs && node tools/fauna-sim.mjs && node tools/animal-motion-sim.mjs && node tools/biome-sim.mjs",
     "smoke": "node tools/smoke.mjs",
-    "qa:miner": "node tools/miner-qa.mjs --checks --seconds 60 --tag m1-final"
+    "qa:miner": "node tools/miner-qa.mjs --checks --seconds 60 --tag m1-final",
+    "test:twin": "node tools/miner-state-test.mjs && node tools/twin-state-test.mjs",
+    "qa:cockpit": "node tools/cockpit-qa.mjs"
   },
   "dependencies": {
     "three": "^0.169.0"

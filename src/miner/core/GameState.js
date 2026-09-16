@@ -12,7 +12,7 @@ export class GameState {
       case 'fieldScanned': this.scanned = true; break;
       case 'targetSelected': this.selected = data.target; break;
       case 'samplingStarted': this.inputLocked = true; break;
-      case 'sampleAcquired': this.sample = null; this.inputLocked = false; break;
+      case 'sampleAcquired': this.sample = data.sample; this.inputLocked = false; break;
       case 'contactUpdated': this.contact = data.contact; break;
       case 'inputLocked': this.inputLocked = data.locked; break;
       default: throw new Error(`Unknown game event: ${type}`);

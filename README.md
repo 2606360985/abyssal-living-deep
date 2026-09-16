@@ -7,13 +7,26 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173/`. This milestone uses Three.js r169, WebGL2, JavaScript and Vite. Desktop keyboard controls and hardware acceleration are required for the intended experience. WebGPU, sonar, sampling, dynamic sediment and the narrative ending are future milestones.
+Open `http://localhost:5173/`. This milestone uses Three.js r169, WebGL2, JavaScript and Vite. Desktop keyboard controls and hardware acceleration are required for the intended experience. WebGPU migration and the frozen unknown-contact narrative ending remain future work.
+
+The default interface is now the Chinese **Deep-sea Mining Digital Twin Cockpit**. It wraps the live Three.js scene with mission, vehicle, cargo, mineral, subsystem, environment, power, trend, log and alert panels. The original minimal HUD remains available at `?ui=classic`; the original Living Deep ocean remains at `?experience=legacy`.
+
+The playable operations loop is:
+
+1. Use A-07 to scan the nodule field and acquire a sample.
+2. Switch to the unlocked C-01 collector profile.
+3. Move within the resource field and press `T` to start or stop continuous collection.
+4. Cargo, mineral yield, pump load, power, turbidity, health, logs and alerts update from the local simulation.
+
+Use `?scenario=dashboard-demo` for a deterministic populated dashboard used in visual QA. Normal missions begin with empty operational history. Career totals, unlocked vehicles and completed missions use the versioned `abyss-miner.save.v1` local save; current position and in-progress mission state reset on reload.
 
 | Control | Action |
 | --- | --- |
 | W / S | Forward / reverse with inertia |
 | A / D | Slow yaw |
 | Q / E | Descend / ascend |
+| T | Start / stop the collector when C-01 is deployed in the field |
+| H | Toggle position hold |
 | F1 | Hide/show all HUD |
 | F2 | Performance information |
 | F3 | Free camera; drag to look, WASD/QE to move, Shift to accelerate |

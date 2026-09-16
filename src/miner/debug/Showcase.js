@@ -7,7 +7,7 @@ export function installShowcase(app) {
     if (name === 'low') { rig.offset.set(4.8, -1.5, -5); rig.lookOffset.set(0, -0.4, 2.5); }
     rig.update(0, 0, app.keys, true);
   };
-  const codes = new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','KeyZ','KeyX','KeyM','Space','ShiftLeft','F1','F2','F3','F4',...Array.from({length:7},(_,i)=>`Digit${i+1}`)]);
+  const codes = new Set(['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','KeyZ','KeyX','KeyM','KeyT','KeyH','Space','ShiftLeft','F1','F2','F3','F4',...Array.from({length:7},(_,i)=>`Digit${i+1}`)]);
   window.addEventListener('pointerdown',()=>app.audio.unlock());
   window.addEventListener('keydown', e => {
     if (!codes.has(e.code)) return;
@@ -15,6 +15,8 @@ export function installShowcase(app) {
     if (e.repeat) return;
     app.audio.unlock();
     if(e.code==='KeyM')app.audio.setMuted(!app.audio.muted);
+    if(e.code==='KeyT')app.toggleMining?.();
+    if(e.code==='KeyH')app.setControlMode?.(app.twin?.getSnapshot().vehicle.controlMode==='hold'?'manual':'hold');
     if (e.code === 'F1') app.hud.toggle();
     if (e.code === 'F2') app.hud.togglePerf();
     if (e.code === 'F3') rig.setMode(rig.mode === 'free' ? 'follow' : 'free');
